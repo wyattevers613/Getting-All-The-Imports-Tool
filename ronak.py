@@ -1,3 +1,5 @@
+# ChatGPT Generated
+
 import pefile
 
 # Open the PE file
