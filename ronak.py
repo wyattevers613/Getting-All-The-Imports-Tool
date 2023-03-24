@@ -3,6 +3,7 @@
 #######Extracts Embedded Executable File######
 import pefile
 import math
+import re
 
 def extract():
     # Open the PE file
@@ -29,3 +30,17 @@ def checkEntropy():
         return True
     else:
         False
+
+def checkDelay():
+    # Open the file and read in the contents
+    with open("path/to/file", "rb") as f:
+        data = f.read()
+
+    # Find all printable ASCII strings in the data
+    strings = re.findall(br"[ -~]{6,}", data)
+
+    # Check each string for the substring "dwMilliseconds"
+    for string in strings:
+        if b"dwMilliseconds" or 'Sleep' in string:
+            return True
+    return False
