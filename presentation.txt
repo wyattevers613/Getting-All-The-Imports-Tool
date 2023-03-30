@@ -1,0 +1,18 @@
+
+
+malware examples
+
+packed - embedded with packing
+delay loaded libraries
+delay loaded Functions
+
+
+
+
+classification with fuzzy
+imphash - IAT hashing 
+Cappa - run on just IAT
+
+
+malware examples
+meoware.exe
