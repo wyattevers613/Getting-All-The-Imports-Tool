@@ -93,10 +93,11 @@ def find_loadlibrarya_getprocaddress_calls(file_path):
                         register = push_instructions[0].op_str
                         for push_instruction in reversed(list(cs.disasm(text_section.get_data()[:push_instructions[1].address - text_section.VirtualAddress], text_section.VirtualAddress))):
                             if push_instruction.mnemonic == "push" and push_instruction.op_str == register:
-                                function_name_address = int(push_instruction.op_str, 16)
-                                function_name = pe.get_string_at_rva(function_name_address - pe.OPTIONAL_HEADER.ImageBase)
-                                loaded_functions.append(function_name.decode())
-                                print(f"  Loading function: {function_name}")
+                                if re.match(r'0x[0-9a-fA-F]+', push_instruction.op_str):
+                                    function_name_address = int(push_instruction.op_str, 16)
+                                    function_name = pe.get_string_at_rva(function_name_address - pe.OPTIONAL_HEADER.ImageBase)
+                                    loaded_functions.append(function_name.decode())
+                                    print(f"  Loading function: {function_name}")
                                 break
                         else:
                             print(f"  Cannot resolve function name from register {register}")
@@ -111,4 +112,5 @@ def find_loadlibrarya_getprocaddress_calls(file_path):
 
 if __name__ == "__main__":
     find_loadlibrarya_getprocaddress_calls(file_path)
+
 
