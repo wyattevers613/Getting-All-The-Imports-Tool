@@ -1,5 +1,31 @@
 To pass into ChatGPT for the extractor
 
+
+
+0029 31MAR:
+PS C:\Users\user\Desktop\Project> python .\delay_load_extract
+or.py
+LoadLibraryA call found at: 0x1019
+  Loading library: b'lab1.dll'
+GetProcAddress call found at: 0x1035
+  Loading function: b''
+GetProcAddress call found at: 0x17fe
+  Loading function: b''
+GetProcAddress call found at: 0x44eb
+  Loading function: b''
+GetProcAddress call found at: 0x4507
+  Loading function: b''
+GetProcAddress call found at: 0x451b
+  Loading function: b''
+GetProcAddress call found at: 0x452f
+  Loading function: b''
+GetProcAddress call found at: 0x4547
+  Loading function: b''
+
+Loaded libraries:
+lab1.dll
+
+
 0014 31MAR:
 PS C:\Users\user\Desktop\Project> python .\delay_load_extract
 or.py
