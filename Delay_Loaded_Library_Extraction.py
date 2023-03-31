@@ -1,5 +1,8 @@
 import pefile
 import capstone
+import re
+
+file_path = "C:\\Users\\user\\Desktop\\Project\\meoware.exe"
 
 def find_loadlibrarya_calls(file_path):
     pe = pefile.PE(file_path)
@@ -32,10 +35,10 @@ def find_loadlibrarya_calls(file_path):
     loaded_libraries = []
 
     for instruction in disassembly:
-        if instruction.mnemonic == "call" and int(instruction.op_str, 16) == loadlibrarya_address:
+        hex_value_match = re.search(r'0x[0-9a-fA-F]+', instruction.op_str)
+        if instruction.mnemonic == "call" and hex_value_match and int(hex_value_match.group(0), 16) == loadlibrarya_address:
             print(f"LoadLibraryA call found at: 0x{instruction.address:x}")
 
-            # Search for the push instruction that sets the argument for LoadLibraryA
             for push_instruction in reversed(list(cs.disasm(text_section.get_data()[:instruction.address - text_section.VirtualAddress], text_section.VirtualAddress))):
                 if push_instruction.mnemonic == "push":
                     library_address = int(push_instruction.op_str, 16)
@@ -49,11 +52,11 @@ def find_loadlibrarya_calls(file_path):
         print(library)
 
 if __name__ == "__main__":
-    import sys
+    # import sys
 
-    if len(sys.argv) < 2:
-        print("Usage: python find_loadlibrarya.py <path_to_exe_file>")
-        sys.exit(1)
+    # if len(sys.argv) < 2:
+    #     print("Usage: python find_loadlibrarya.py <path_to_exe_file>")
+    #     sys.exit(1)
 
-    exe_file_path = sys.argv[1]
-    find_loadlibrarya_calls(exe_file_path)
+    # exe_file_path = sys.argv[1]
+    find_loadlibrarya_calls(file_path)

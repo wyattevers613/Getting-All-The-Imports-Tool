@@ -2,6 +2,8 @@ import pefile
 import capstone
 import re
 
+file_path = "C:\\Users\\user\\Desktop\\Project\\meoware.exe"
+
 def find_getprocaddress_calls(file_path):
     pe = pefile.PE(file_path)
 
@@ -38,7 +40,6 @@ def find_getprocaddress_calls(file_path):
             if hex_number and int(hex_number.group(0), 16) == getprocaddress_address:
                 print(f"GetProcAddress call found at: 0x{instruction.address:x}")
 
-                # Locate the push instructions for GetProcAddress arguments
                 push_instructions = []
                 for push_instruction in reversed(list(cs.disasm(text_section.get_data()[:instruction.address - text_section.VirtualAddress], text_section.VirtualAddress))):
                     if push_instruction.mnemonic == "push":
@@ -47,10 +48,13 @@ def find_getprocaddress_calls(file_path):
                             break
 
                 if len(push_instructions) == 2:
-                    function_name_address = int(push_instructions[0].op_str, 16)
-                    function_name = pe.get_string_at_rva(function_name_address - pe.OPTIONAL_HEADER.ImageBase)
-                    loaded_functions.append(function_name.decode())
-                    print(f"  Loading function: {function_name}")
+                    if re.match(r'0x[0-9a-fA-F]+', push_instructions[0].op_str):
+                        function_name_address = int(push_instructions[0].op_str, 16)
+                        function_name = pe.get_string_at_rva(function_name_address - pe.OPTIONAL_HEADER.ImageBase)
+                        loaded_functions.append(function_name.decode())
+                        print(f"  Loading function: {function_name}")
+                    else:
+                        print(f"  Cannot resolve function name from register {push_instructions[0].op_str}")
 
     print("\nLoaded functions:")
     for function in loaded_functions:
@@ -59,9 +63,9 @@ def find_getprocaddress_calls(file_path):
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) < 2:
-        print("Usage: python find_getprocaddress.py <path_to_exe_file>")
-        sys.exit(1)
+    # if len(sys.argv) < 2:
+    #     print("Usage: python find_getprocaddress.py <path_to_exe_file>")
+    #     sys.exit(1)
 
-    exe_file_path = sys.argv[1]
-    find_getprocaddress_calls(exe_file_path)
+    # exe_file_path = sys.argv[1]
+    find_getprocaddress_calls(file_path)
