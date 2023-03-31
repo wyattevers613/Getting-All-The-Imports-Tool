@@ -82,25 +82,28 @@ def find_loadlibrarya_getprocaddress_calls(file_path):
                         if len(push_instructions) == 2:
                             break
 
+                    # ... (previous code remains the same)
+
                 if len(push_instructions) == 2:
-                    if re.match(r'0x[0-9a-fA-F]+', push_instructions[0].op_str):
-                        function_name_address = int(push_instructions[0].op_str, 16)
+                    # Check if the second push instruction contains a valid hex address
+                    hex_value_match = re.search(r'0x[0-9a-fA-F]+', push_instructions[1].op_str)
+
+                    if hex_value_match:
+                        # Convert the hex address to an integer
+                        data_address = int(hex_value_match.group(0), 16)
+
+                        # Read the little-endian address from the data section
+                        function_name_address_le = pe.get_data(data_address - pe.OPTIONAL_HEADER.ImageBase, 4)
+                        function_name_address = int.from_bytes(function_name_address_le, byteorder='little', signed=False)
+
+                        # Get the function name from the address in the PE file
                         function_name = pe.get_string_at_rva(function_name_address - pe.OPTIONAL_HEADER.ImageBase)
+
+                        # Add the function name to the list of loaded functions and print it
                         loaded_functions.append(function_name.decode())
                         print(f"  Loading function: {function_name}")
                     else:
-                        # If the function name is loaded into a register, try to find the push instruction that loads the address into the register
-                        register = push_instructions[0].op_str
-                        for push_instruction in reversed(list(cs.disasm(text_section.get_data()[:push_instructions[1].address - text_section.VirtualAddress], text_section.VirtualAddress))):
-                            if push_instruction.mnemonic == "push" and push_instruction.op_str == register:
-                                if re.match(r'0x[0-9a-fA-F]+', push_instruction.op_str):
-                                    function_name_address = int(push_instruction.op_str, 16)
-                                    function_name = pe.get_string_at_rva(function_name_address - pe.OPTIONAL_HEADER.ImageBase)
-                                    loaded_functions.append(function_name.decode())
-                                    print(f"  Loading function: {function_name}")
-                                break
-                        else:
-                            print(f"  Cannot resolve function name from register {register}")
+                        print(f"  Cannot resolve function name from instruction: {push_instructions[1].mnemonic} {push_instructions[1].op_str}")
 
     print("\nLoaded libraries:")
     for library in loaded_libraries:
@@ -112,5 +115,6 @@ def find_loadlibrarya_getprocaddress_calls(file_path):
 
 if __name__ == "__main__":
     find_loadlibrarya_getprocaddress_calls(file_path)
+
 
 
