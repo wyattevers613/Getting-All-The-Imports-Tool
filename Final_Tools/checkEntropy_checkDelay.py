@@ -2,8 +2,8 @@ import math
 import re
 
 #######Checks Signs of Entropy########
-def checkEntropy():
-    with open("file_path",'rb') as f:
+def checkEntropy(path):
+    with open(path,'rb') as f:
         data = f.read()
     entropy = sum((data.count(chr(i)) / float(len(data))) * \
         math.log((data.count(chr(i)) / float(len(data))) , 2) for i in range(256))
@@ -12,9 +12,9 @@ def checkEntropy():
     else:
         False
 
-def checkDelay():
+def checkDelay(path):
     # Open the file and read in the contents
-    with open("path/to/file", "rb") as f:
+    with open(path, "rb") as f:
         data = f.read()
 
     # Find all printable ASCII strings in the data
