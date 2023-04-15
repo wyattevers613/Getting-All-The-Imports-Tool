@@ -20,12 +20,12 @@ def extract(path):
     for entry in iat:
         libraries_count += 1
         print("    " + entry.dll.decode())
-        """
+        
         for imp in entry.imports:
             function_count += 1
             print("        " + hex(imp.address) + " " + imp.name.decode())
-        """
-
+        
+    print("\n")
     print(f"Total Libraries Imported: {libraries_count}")
-    #print(f"Total Functions Imported: {function_count}")
+    print(f"Total Functions Imported: {function_count}")
 
