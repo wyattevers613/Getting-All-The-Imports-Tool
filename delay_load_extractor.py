@@ -101,18 +101,17 @@ def find_loadlibrarya_getprocaddress_calls(file_path):
 
                         # Add the function name to the list of loaded functions and print it
                         loaded_functions.append(function_name.decode())
-                        # print(f"  Loading function: {function_name}")
+                        print(f"  Loading function: {function_name}")
                     else:
-                        pass
-                        # print(f"  Cannot resolve function name from instruction: {push_instructions[1].mnemonic} {push_instructions[1].op_str}")
+                        print(f"  Cannot resolve function name from instruction: {push_instructions[1].mnemonic} {push_instructions[1].op_str}")
 
     print("\nLate Loaded libraries:")
     for library in loaded_libraries:
         print(library)
 
-    # print("\nLate Loaded functions:")
-    # for function in loaded_functions:
-    #     print(function)
+    print("\nLate Loaded functions:")
+    for function in loaded_functions:
+        print(function)
 
 if __name__ == "__main__":
     find_loadlibrarya_getprocaddress_calls(file_path)
