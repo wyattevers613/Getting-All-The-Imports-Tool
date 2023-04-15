@@ -71,10 +71,12 @@ def find_loadlibrarya_getprocaddress_calls(file_path):
                         print(f"  Loading library: {library_name}")
                         break
 
+            
             # Check for GetProcAddress calls
             elif call_address == getprocaddress_address:
                 print(f"GetProcAddress call found at: 0x{instruction.address:x}")
 
+                # Find the two push instructions that load the function name and module handle
                 push_instructions = []
                 for push_instruction in reversed(list(cs.disasm(text_section.get_data()[:instruction.address - text_section.VirtualAddress], text_section.VirtualAddress))):
                     if push_instruction.mnemonic == "push":
@@ -82,22 +84,31 @@ def find_loadlibrarya_getprocaddress_calls(file_path):
                         if len(push_instructions) == 2:
                             break
 
-                    # ... (previous code remains the same)
-
                 if len(push_instructions) == 2:
                     # Check if the second push instruction contains a valid hex address
                     hex_value_match = re.search(r'0x[0-9a-fA-F]+', push_instructions[1].op_str)
 
                     if hex_value_match:
                         # Convert the hex address to an integer
-                        data_address = int(hex_value_match.group(0), 16)
+                        module_handle_address = int(hex_value_match.group(0), 16)
 
                         # Read the little-endian address from the data section
-                        function_name_address_le = pe.get_data(data_address - pe.OPTIONAL_HEADER.ImageBase, 4)
-                        function_name_address = int.from_bytes(function_name_address_le, byteorder='little', signed=False)
+                        module_handle_le = pe.get_data(module_handle_address - pe.OPTIONAL_HEADER.ImageBase, 4)
+                        module_handle = int.from_bytes(module_handle_le, byteorder='little', signed=False)
 
-                        # Get the function name from the address in the PE file
-                        function_name = pe.get_string_at_rva(function_name_address - pe.OPTIONAL_HEADER.ImageBase)
+                        # Check if the first push instruction loads a register value
+                        if push_instructions[0].op_str.lower() in ['eax', 'ebx', 'ecx', 'edx', 'edi', 'esi']:
+                            # Use the register value as the function address
+                            register_name = push_instructions[0].op_str.lower()
+                            register_value = getattr(cs.registers, register_name)
+                            function_address = register_value
+                        else:
+                            # Read the function name from the first push instruction
+                            function_name_address = int(push_instructions[0].op_str, 16)
+                            function_name = pe.get_string_at_rva(function_name_address - pe.OPTIONAL_HEADER.ImageBase)
+
+                            # Get the function address using GetProcAddress
+                            function_address = pe.getProcAddress(module_handle, function_name.decode())
 
                         # Add the function name to the list of loaded functions and print it
                         loaded_functions.append(function_name.decode())
@@ -115,6 +126,4 @@ def find_loadlibrarya_getprocaddress_calls(file_path):
 
 if __name__ == "__main__":
     find_loadlibrarya_getprocaddress_calls(file_path)
-
-
 
