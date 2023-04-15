@@ -1,9 +1,3 @@
-import pefile
-import capstone
-import re
-
-file_path = "C:\\Users\\user\\Desktop\\Project\\meoware.exe"
-
 def find_delay_loaded_functions(file_path):
     # Load the PE (Portable Executable) file
     pe = pefile.PE(file_path)
@@ -77,10 +71,13 @@ def find_delay_loaded_functions(file_path):
                 for push_instruction in reversed(list(cs.disasm(text_section.get_data()[:instruction.address - text_section.VirtualAddress], text_section.VirtualAddress))):
                     if push_instruction.mnemonic == "push":
                         library_address = int(push_instruction.op_str, 16)
-                        library_name_address = library_address - pe.OPTIONAL_HEADER.ImageBase + lib_names.get(pe.get_data(library_address - pe.OPTIONAL_HEADER.ImageBase, 100).split(b'\0')[0])
-                        library_name = pe.get_string_at_rva
-                        loaded_libraries.append(library_name.decode())
-                        print(f"  Loading library: {library_name}")
+                        library_name_address = lib_names.get(pe.get_data(library_address - pe.OPTIONAL_HEADER.ImageBase, 100).split(b
+                        if library_name_address is None:
+                            print(f"Cannot resolve library name from instruction: {push_instruction.mnemonic} {push_instruction.op_str}")
+                            break
+
+                        loaded_libraries.append(pe.get_string_at_rva(library_name_address).decode())
+                        print(f"  Loading library: {loaded_libraries[-1]}")
                         break
 
             # Check for GetProcAddress calls
@@ -105,14 +102,19 @@ def find_delay_loaded_functions(file_path):
                         # Read the little-endian address from the data section
                         function_name_address_le = pe.get_data(data_address - pe.OPTIONAL_HEADER.ImageBase, len("WelcomeMessage") + 1)
                         function_name_address = function_name_address_le.split(b'\0')[0]
-                        function_name_address = function_name_address - pe.OPTIONAL_HEADER.ImageBase + func_names.get(function_name_address_le.split(b'\0')[1])
+
+                        if function_name_address in func_names:
+                            function_name_address = func_names[function_name_address]
+                        else:
+                            print(f"Cannot resolve function name from instruction: {push_instructions[1].mnemonic} {push_instructions[1].op_str}")
+                            break
 
                         # Get the function name from the address in the PE file
                         function_name = pe.get_string_at_rva(function_name_address)
 
                         # Add the function name to the list of loaded functions and print it
                         loaded_functions.append(function_name.decode())
-                        print(f"  Loading function: {function_name}")
+                        print(f"  Loading function: {loaded_functions[-1]}")
                     else:
                         print(f"  Cannot resolve function name from instruction: {push_instructions[1].mnemonic} {push_instructions[1].op_str}")
 
@@ -126,4 +128,3 @@ def find_delay_loaded_functions(file_path):
 
 if __name__ == "__main__":
     find_delay_loaded_functions(file_path)
-
