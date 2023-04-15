@@ -21,4 +21,4 @@ Replace `<file-path>` with the path to the executable you want to analyze.
 
 ## Other Tool Usage
 
-- Non-integrated tools can be ran by navigating to the Other Tools folder
+- Non-integrated tools can be ran by navigating to the Final_Tools folder
